@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smiley + Spinning ASCII Cube</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --text: #e2e8f0;
+      --accent: #facc15;
+      --cube: #7dd3fc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    .wrap {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .smiley {
+      font-size: clamp(90px, 18vw, 220px);
+      line-height: 1;
+      color: var(--accent);
+      text-shadow: 0 0 25px rgba(250, 204, 21, 0.35);
+      margin-bottom: 16px;
+    }
+
+    pre {
+      margin: 0;
+      font-size: clamp(12px, 2vw, 18px);
+      line-height: 1.1;
+      color: var(--cube);
+      text-shadow: 0 0 14px rgba(125, 211, 252, 0.25);
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="smiley">☺</div>
+    <pre id="cube" aria-label="Spinning ASCII cube"></pre>
+  </div>
+
+  <script>
+    const frames = [
+`    +------+
+   /      /|
+  +------+ |
+  |      | +
+  |      |/
+  +------+`,
+`      +------+
+     /|     /|
+    +------+ |
+    | +----|-+
+    |/     |/
+    +------+`,
+`  +------+
+  |\\     \\
+  | +------+
+  +-|----- |
+   \\|      |
+    +------+`,
+`+------+
+|\\     |\\
+| +----+-+
+| |    | |
++-+----+ |
+ \\|     \\|
+  +------+`
+    ];
+
+    const cube = document.getElementById("cube");
+    let index = 0;
+
+    function drawFrame() {
+      cube.textContent = frames[index];
+      index = (index + 1) % frames.length;
+    }
+
+    drawFrame();
+    setInterval(drawFrame, 180);
+  </script>
+</body>
+</html>
