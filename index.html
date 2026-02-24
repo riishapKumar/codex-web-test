@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smiley + Spinning ASCII Cube</title>
+  <title>Smiley + Spinning Line Cube</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -39,61 +39,85 @@
       margin-bottom: 16px;
     }
 
-    pre {
-      margin: 0;
-      font-size: clamp(12px, 2vw, 18px);
-      line-height: 1.1;
-      color: var(--cube);
-      text-shadow: 0 0 14px rgba(125, 211, 252, 0.25);
-      user-select: none;
+    canvas {
+      width: min(320px, 70vw);
+      height: min(320px, 70vw);
+      display: block;
+      margin: 0 auto;
+      filter: drop-shadow(0 0 12px rgba(125, 211, 252, 0.4));
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="smiley">☺</div>
-    <pre id="cube" aria-label="Spinning ASCII cube"></pre>
+    <canvas id="cube" width="320" height="320" aria-label="Spinning line cube"></canvas>
   </div>
 
   <script>
-    const frames = [
-`    +------+
-   /      /|
-  +------+ |
-  |      | +
-  |      |/
-  +------+`,
-`      +------+
-     /|     /|
-    +------+ |
-    | +----|-+
-    |/     |/
-    +------+`,
-`  +------+
-  |\\     \\
-  | +------+
-  +-|----- |
-   \\|      |
-    +------+`,
-`+------+
-|\\     |\\
-| +----+-+
-| |    | |
-+-+----+ |
- \\|     \\|
-  +------+`
+    const canvas = document.getElementById("cube");
+    const ctx = canvas.getContext("2d");
+    const size = 70;
+
+    const vertices = [
+      [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+      [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
     ];
 
-    const cube = document.getElementById("cube");
-    let index = 0;
+    const edges = [
+      [0, 1], [1, 2], [2, 3], [3, 0],
+      [4, 5], [5, 6], [6, 7], [7, 4],
+      [0, 4], [1, 5], [2, 6], [3, 7]
+    ];
 
-    function drawFrame() {
-      cube.textContent = frames[index];
-      index = (index + 1) % frames.length;
+    function rotate([x, y, z], ax, ay) {
+      const cosX = Math.cos(ax);
+      const sinX = Math.sin(ax);
+      const cosY = Math.cos(ay);
+      const sinY = Math.sin(ay);
+
+      const y1 = y * cosX - z * sinX;
+      const z1 = y * sinX + z * cosX;
+      const x2 = x * cosY + z1 * sinY;
+      const z2 = -x * sinY + z1 * cosY;
+
+      return [x2, y1, z2];
     }
 
-    drawFrame();
-    setInterval(drawFrame, 180);
+    function project([x, y, z]) {
+      const distance = 3.5;
+      const perspective = distance / (distance - z);
+      return [
+        x * size * perspective + canvas.width / 2,
+        y * size * perspective + canvas.height / 2
+      ];
+    }
+
+    function draw(time) {
+      const t = time * 0.001;
+      const ax = t * 0.9;
+      const ay = t * 1.2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--cube").trim();
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+
+      const points = vertices.map((v) => project(rotate(v, ax, ay)));
+
+      edges.forEach(([a, b]) => {
+        const [x1, y1] = points[a];
+        const [x2, y2] = points[b];
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
   </script>
 </body>
 </html>
